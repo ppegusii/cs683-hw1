@@ -1,7 +1,6 @@
 \documentclass[12pt]{article}
 \usepackage[margin=1in]{geometry} 
-\usepackage{amsmath,amsthm,amssymb,amsfonts,algpseudocode,mathtools}
-%\usepackage{algpseudocode}
+\usepackage{amsmath,amsthm,amssymb,amsfonts,algpseudocode,graphicx,mathtools}
 
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Z}{\mathbb{Z}}
@@ -116,7 +115,60 @@
 %	If states not leading to an optimal solution have larger step costs than those leading to a solution, then the implicit search tree is self-pruning with UCS and an accurate heuristic is not necessary. Parabolic trough path cost
 \end{problem}
 \begin{problem}{3}
-	Give an example of a search space in which A* would expand a node with a g-value that is greater than the cost of the optimal path from the initial state to that state. To do that, draw a small graph, designate one node as an initial state and one node as the goal state. Assign path costs to edges and an admissible heuristic estimate to each node.
+	Give an example of a search space in which A* would expand a node with a g-value that is greater than the cost of the optimal path from the initial state to that state.
+	To do that, draw a small graph, designate one node as an initial state and one node as the goal state.
+	Assign path costs to edges and an admissible heuristic estimate to each node.
+	\begin{enumerate}
+		\item Show the graph and trace the execution of A* until it terminates.
+
+			\vspace{0.25cm}
+%			If the implementation of A$^*$ has no duplicate node handling, this is impossible.
+%			\begin{proof}
+%				Let node $n$ represent a path with cost greater than the optimal path cost $C^*$.
+%				Let node $n'$ represent an optimal path.
+%				For $n$ to be expanded before some node $n'$,
+%				\begin{align*}
+%					g(n) + h(n) &<= g(n') + h(n') \\
+%					g(n) + h(n) &<= g(n') \text{, since the last state in $n'$ is the goal state and $h$ is admissible} \\
+%					g(n) + h(n) &<= C^* \\
+%					g(n) &<= C^* \text{, assuming that $h$ is non-negative}\\
+%				\end{align*}
+%			\end{proof}
+%			However, if the implementation handles duplicates so that only states and not path costs to reach states are saved in the closed list, then the graph in Figure~\ref{fig:p3graph} will cause the situation described.
+%			This execution trace is shown in Table~\ref{tbl:trace}.
+			In Figure~\ref{fig:p3graph}, node representing path $(I,C)$ with cost 5 is expanded before the node representing path $(I,A,C)$ with cost 4. The execution trace is shown in Table~\ref{tbl:trace}.
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.8\textwidth]{fig/p3graph.pdf}
+				\caption{$I$ and $G$ are the initial and goal states, respectively.}
+				\label{fig:p3graph}
+			\end{figure} \\
+			\begin{table}[h]
+				\centering
+				%\begin{tabular}{c|c|c}
+				\begin{tabular}{c|c}
+					Expansion & Open List \\ %& Closed List \\
+					\hline
+%					1 & $[(I; 0+6)]$ & $[]$ \\
+%					2 & $[(I,A; 2+4), (I,C; 5+0)]$ & $[(I,0)]$ \\
+%					3 & $[(I,A; 2+4), (I,C,G; 5+2)]$ & $[(I,0),(C,5)]$ \\
+%					4 & $[(I,A,C; 4+0), (I,C,G; 5+2)]$ & $[(I,0),(C,4),(A,2)]$ \\
+%					5 & $[(I,A,C,G; 6+0), (I,C,G; 5+2)]$ & $[(I,0),(C,4),(A,2),(G,6)]$ \\
+%					4 & $[(I,C,G; 5+2)]$ & $[I,C]$ \\
+					1 & $[(I; 0+6)]$ \\
+					2 & $[(I,C; 5+0), (I,A; 2+4)]$ \\
+					3 & $[(I,A; 2+4), (I,C,G; 7+0)]$  \\
+					4 & $[(I,A,C; 4+0), (I,C,G; 7+0)]$  \\
+					5 & $[(I,A,C,G; 6+0), (I,C,G; 7+0)]$ \\
+				\end{tabular}
+				\caption{Execution trace of A$^*$ on the graph in Figure~\ref{fig:p3graph}. Nodes are given symbolically as $(path; g+h)$.}% of A$^*$ implemented with duplicate handling that does not remember cost information in the closed list.}
+				\label{tbl:trace}
+			\end{table}
+		\item Is your heuristic function consistent? Is it generally possible to create such an example when the heuristic is consistent? Explain your answer.
+
+			\vspace{0.25cm}
+			My heuristic is inconsistent. $h(A) = 4 \nleq cost(A,C) + h(C) = 2$.
+\end{enumerate}
 \end{problem}
 
 \end{document}
