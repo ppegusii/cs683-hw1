@@ -168,7 +168,34 @@
 
 			\vspace{0.25cm}
 			My heuristic is inconsistent. $h(A) = 4 \nleq cost(A,C) + h(C) = 2$.
+			\textbf{TODO: Answer the rest of this question.}
 \end{enumerate}
+\end{problem}
+\begin{problem}{4}
+	In this exercise, we consider the choice between two admissible heuristic functions, one of which is always at least as accurate as the other.
+	More precisely, for a fixed goal, let $h_1$ and $h_2$ be two admissible heuristic functions such that $h_1(n) \le h_2(n)$ for every node n in the search tree.
+	Now recall that the A$^*$ algorithm expands nodes according to their f values, but the order in which nodes of equal f values are expanded can vary, depending on the implementation.
+	For a given heuristic function h, we say that an ordering of the nodes in the search tree is \textbf{h-legal} if expanding the nodes in that order is consistent with A$^*$ search using h.
+	Let N denote the set of nodes expanded by an A* search using $h_1$ (the ``less accurate'' heuristic function).
+	Prove that there is always some search ordering that is $h_2$-legal that expands only a (not necessarily strict) subset of the nodes in N.
+	That is, prove that it is always possible that $h_2$ leads to a smaller search space than $h_1$.
+	(Note that the question asks you to find some search ordering such that certain properties hold.
+	Hint: It is not possible, in general, to show that these properties hold for an arbitrary search ordering.)
+\end{problem}
+\begin{problem}{5}
+	A knight moves on a chessboard two squares up, down, left, or right followed by one square in one of the two directions perpendicular to the first part of the move (i.e., the move is L-shaped).
+	Suppose the knight is on an unbounded board at square (0,0) and we wish to move it to square (x,y) in the smallest number of moves.
+	(For example, to move from (0,0) to (1,1) requires two moves. The knight can move to board locations with negative coordinates.) 
+	\begin{enumerate}
+		\item Explain how to decide whether the required number of moves is even or odd without constructing a solution.
+
+			\vspace{0.25cm}
+			If $x \bmod 2 \neq y \bmod 2$, then the number of moves is odd. Otherwise, it is even.
+		\item Design an admissible heuristic function for estimating the minimum number of moves required; it should be as accurate as you can make it.
+			Prove rigorously that your heuristic is admissible.
+		\item Implement A$^*$ and use it to solve the problem using your heuristic.
+			Create two scatter plots showing (a) the number of nodes expanded as a function of solution length, and (b) computation time as a function of solution length for a set of randomly generated problem instances. 
+	\end{enumerate}
 \end{problem}
 
 \end{document}
