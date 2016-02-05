@@ -193,9 +193,36 @@
 			If $x \bmod 2 \neq y \bmod 2$, then the number of moves is odd. Otherwise, it is even.
 		\item Design an admissible heuristic function for estimating the minimum number of moves required; it should be as accurate as you can make it.
 			Prove rigorously that your heuristic is admissible.
+
+			\vspace{0.25cm}
+			The heuristic returns a lookup in a pattern database if it exists, otherwise a calculated underestimate.
+			The pattern database contains the exact path cost to move from $(0,0)$ to $(x,y)$ where $x$ and $y$ are integers less than or equal to 3.
+			These path costs were found by uniform cost search (UCS).
+			Therefore, they do not over estimate the path cost, since UCS is optimal.
+			Let $(x_g,y_g)$ and $(x, y)$ be the coordinates of the goal and the current position, respectively.
+			A lookup key for the pattern database is $(|x_g-x|,|y_g-y|)$.
+			The differences shift the problem to the origin.
+			The absolute values translate the position to the first quadrant, which does not change path costs, since the problem is symmetric.
+
+			The calculated heuristic is achieved by relaxing the problem and finding the admissible solution to that relaxed problem, making it an admissible heuristic to the original one.
+			Instead of restricting the knight's movement to ``two squares up, down, left, or right followed by one square in one of the two directions perpendicular to the first part of the move'',
+			it is allowed to move three times.
+			Each time the knight may move up, down, left, or right one square.
+			Therefore, the optimal path cost is at least $\lfloor\frac{m}{3}\rfloor$, where $m$ is the Manhattan distance.
 		\item Implement A$^*$ and use it to solve the problem using your heuristic.
 			Create two scatter plots showing (a) the number of nodes expanded as a function of solution length, and (b) computation time as a function of solution length for a set of randomly generated problem instances. 
+
+			\vspace{0.25cm}
+			\textbf{TODO: discussion of figure}
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.8\textwidth]{fig/p5_h_4_max_20_iter_100_seed_0.eps}
+				\caption{Nodes expanded and compute time as a function of solution length during 100 A$^*$ searches of randomly chosen goals in the 25-unit square.}
+				\label{fig:p5graph}
+			\end{figure} \\
 	\end{enumerate}
+\end{problem}
+\begin{problem}{6}
 \end{problem}
 
 \end{document}

@@ -12,8 +12,25 @@ import sys
 import astar
 
 
+PDB = {
+    (1, 1): 2,
+    (1, 0): 3,
+    (0, 1): 3,
+    (2, 0): 2,
+    (0, 2): 2,
+    (3, 1): 2,
+    (1, 3): 2,
+    (2, 2): 4,
+    (3, 0): 3,
+    (0, 3): 3,
+    (3, 2): 3,
+    (2, 3): 3,
+}
+
+
 def main():
     args = parseArgs(sys.argv)
+    # print(args)
     '''
     k = KnightNode(np.array([1, 1]), None, np.array([3, 2]))
     for s in k.successors():
@@ -46,6 +63,7 @@ def main():
     print('{} solution: {}'.format(e, astar.search(k)))
     '''
 
+    '''
     e = np.array([3, 0])
     k = KnightNode(np.array([0, 0]), None, e, H[0])
     print('{} solution: {}'.format(e, astar.search(k)))
@@ -53,6 +71,7 @@ def main():
     k = KnightNode(np.array([0, 0]), None, e, H[0])
     print('{} solution: {}'.format(e, astar.search(k)))
     sys.exit(0)
+    '''
 
     random.seed(args.seed)
     solLength = np.zeros(args.iter)
@@ -75,7 +94,7 @@ def main():
     print('solLength: {}'.format(solLength))
     print('expanded: {}'.format(expanded))
     print('compTime: {}'.format(compTime))
-    plot(H[args.heuristic], solLength, expanded, compTime, args.max, args.iter,
+    plot(args.heuristic, solLength, expanded, compTime, args.max, args.iter,
          args.seed, args.dir)
 
 
@@ -124,7 +143,19 @@ def v2(xy, goal):
     return maxDif-minDif+2*int(math.floor((maxDif-2*(maxDif-minDif))/3.))
 
 
-H = [v0, v1, v2]
+def v3(xy, goal):
+    return np.sum(np.abs(goal-xy))/3
+
+
+def v4(xy, goal):
+    absDist = np.abs(goal-xy)
+    h = PDB.get(tuple(absDist))
+    if h is not None:
+        return h
+    return np.sum(absDist)/3
+
+
+H = [v0, v1, v2, v3, v4]
 
 
 class KnightNode(astar.Node):
