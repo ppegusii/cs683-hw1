@@ -3,12 +3,10 @@ from __future__ import print_function
 import argparse
 import datetime as dt
 import gc
-# import math
 from matplotlib import pyplot as plt
 import numpy as np
 import os
-# import pandas as pd
-import random
+import pandas as pd
 import sys
 
 import astar
@@ -16,28 +14,23 @@ import astar
 
 def main():
     args = parseArgs(sys.argv)
-    print(args)
 
-    random.seed(args.seed)
+    np.random.seed(args.seed)
     solLength = np.zeros(args.iter)
     expanded = np.zeros(args.iter)
     compTime = np.zeros(args.iter)
     for i in xrange(args.iter):
-        '''
-        goal = np.array(
-            [
-                random.randrange(args.max*-1, args.max+1, 1),
-                random.randrange(args.max*-1, args.max+1, 1),
-            ]
-        )
-        '''
-        # k = KnightNode(np.array([0, 0]), None, None, goal, H[args.heuristic])
+        visitedList = [0]
+        G = pd.DataFrame(np.random.rand(args.cities, 2), columns=['x', 'y'])
+        cost = 0
+        t = TspNode(visitedList, G, cost, H[args.heuristic])
         start = dt.datetime.now()
-        # path, e = astar.search(k)
+        path, e = astar.search(t)
         compTime[i] = (dt.datetime.now()-start).total_seconds()
-        # solLength[i] = path.shape[0]
-        # expanded[i] = e
-        # k = None
+        solLength[i] = path.shape[0]
+        expanded[i] = e
+        G = None
+        t = None
         gc.collect()
     print('solLength: {}'.format(solLength))
     print('expanded: {}'.format(expanded))
@@ -102,13 +95,12 @@ H = [primMstWeight]
 
 class TspNode(astar.Node):
 
-    def __init__(self, state, ppth, pg, heuristic):
-        self.state = state
-        self.cost = 0 if pg is None else pg+1
-        # self.pth =
-        # successors = self.xy + KnightNode.moves
-        # self.sXy = KnightNode.pruneSuccesors(successors, self.pth)
+    def __init__(self, visitedList, graph, cost, heuristic):
+        self.vl = visitedList
+        self.G = graph
+        self.cost = cost
         self.heuristic = heuristic
+        # df[~df.index.isin([2,1])]
 
     def destroy(self):
         self.state = None
@@ -153,6 +145,7 @@ def parseArgs(args):
     parser.add_argument(
         '-s', '--seed',
         default=0,
+        type=int,
         help='Seed for random number generator.',
     )
     parser.add_argument(
