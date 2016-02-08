@@ -22,10 +22,12 @@ def main():
     for i in xrange(args.iter):
         visitedList = [0]
         G = pd.DataFrame(np.random.rand(args.cities, 2), columns=['x', 'y'])
+        print(G)
         cost = 0
         t = TspNode(visitedList, G, cost, H[args.heuristic])
         start = dt.datetime.now()
         path, e = astar.search(t)
+        print('solution path: {}'.format(path))
         compTime[i] = (dt.datetime.now()-start).total_seconds()
         solLength[i] = path.shape[0]
         expanded[i] = e
@@ -35,11 +37,11 @@ def main():
     print('solLength: {}'.format(solLength))
     print('expanded: {}'.format(expanded))
     print('compTime: {}'.format(compTime))
-    plot(args.heuristic, solLength, expanded, compTime, args.max, args.iter,
+    plot(args.heuristic, solLength, expanded, compTime, args.cities, args.iter,
          args.seed, args.dir)
 
 
-def plot(h, solLength, expanded, compTime, mx, it, seed, outDir):
+def plot(h, solLength, expanded, compTime, cities, it, seed, outDir):
     plt.close('all')
     fig = plt.figure(figsize=(8, 3))
     ax1 = fig.add_subplot(1, 2, 1)
@@ -59,9 +61,9 @@ def plot(h, solLength, expanded, compTime, mx, it, seed, outDir):
     plt.savefig(
         os.path.join(
             outDir,
-            'p5_h_{}_max_{}_iter_{}_seed_{}.eps'.format(
+            'p5_h_{}_cities_{}_iter_{}_seed_{}.eps'.format(
                 h,
-                mx,
+                cities,
                 it,
                 seed,
             )
@@ -70,11 +72,18 @@ def plot(h, solLength, expanded, compTime, mx, it, seed, outDir):
     )
 
 
-def primMstWeight(G):
-    G['key'] = np.inf
+def primMstWeight(G, visitedList):
+    origNotTreeIdxs = G[~G.index.isin(visitedList[1:])].index
+    if len(origNotTreeIdxs) == 0:
+        return 0.
+    notTreeIdxs = origNotTreeIdxs.copy()
+    # G['key'] = np.inf
+    G.loc[notTreeIdxs, 'key'] = np.inf
     # set tree root arbitrarily
-    G.loc[G.index[0], 'key'] = 0
-    notTreeIdxs = G.index
+    # G.loc[G.index[0], 'key'] = 0
+    G.loc[notTreeIdxs[0], 'key'] = 0
+    # notTreeIdxs = G.index
+    print('notTreeIdxs: {}'.format(notTreeIdxs))
     while len(notTreeIdxs) > 1:
         # select the min weighted vertex
         minIdx = G.loc[notTreeIdxs, 'key'].idxmin()
@@ -86,8 +95,11 @@ def primMstWeight(G):
         # update distances with possible new minimums
         G.loc[notTreeIdxs, 'key'] = np.min(
             [G.loc[notTreeIdxs, 'key'].values, dist], axis=0)
-    # print(G)
-    return(G['key'].sum())
+    # weight = G['key'].sum()
+    weight = G.loc[origNotTreeIdxs, 'key'].sum()
+    print('G in prim: {}'.format(G.loc[origNotTreeIdxs]))
+    print('MST weight: {}'.format(weight))
+    return weight
 
 
 H = [primMstWeight]
@@ -103,33 +115,65 @@ class TspNode(astar.Node):
         # df[~df.index.isin([2,1])]
 
     def destroy(self):
-        self.state = None
+        self.vl = None
+        self.G = None
         self.cost = None
-        # self.pth = None
-        # self.sXy = None
         self.heuristic = None
 
     def successors(self):
-        pass
+        notVisitedIdxs = self.G[~self.G.index.isin(self.vl)].index
+        # compute the distances from current city to all remaining cities
+        dif = (self.G.loc[notVisitedIdxs, 'x':'y'] -
+               self.G.loc[self.vl[-1], 'x':'y'])
+        dist = np.linalg.norm(dif, axis=1)
+        if len(notVisitedIdxs) > 1:
+            ss = [
+                TspNode(
+                    self.vl+[notVisitedIdxs[i]],
+                    self.G,
+                    self.cost+dist[i],
+                    self.heuristic,
+                ) for i in range(len(notVisitedIdxs))
+            ]
+        else:
+            # compute the tour completion node
+            ss = [
+                TspNode(
+                    self.vl+[notVisitedIdxs[i]]+self.vl[:1],
+                    self.G,
+                    # add the distance to the first city
+                    self.cost+dist[i]+np.linalg.norm(
+                        (self.G.loc[self.vl[0], 'x':'y'] -
+                         self.G.loc[notVisitedIdxs[i], 'x':'y'])
+                    ),
+                    self.heuristic,
+                ) for i in range(len(notVisitedIdxs))
+            ]
+        print('Successors of {}:'.format(self.path()))
+        for s in ss:
+            print('\t{}'.format(s.path()))
+        return ss
 
     def isGoal(self):
-        pass
+        '''
+        Return true if all cities have been visited and the first visited is
+        the last visited.
+        '''
+        return (np.alltrue(self.G.index.isin(self.vl)) and
+                self.vl[0] == self.vl[-1])
 
     def g(self):
         return self.cost
 
     def h(self):
-        return self.heuristic(self.state)
+        '''
+        Return the MST weight for cities not yet visited plus the first.
+        '''
+        # return self.heuristic(self.G[~self.G.index.isin(self.vl[1:])])
+        return self.heuristic(self.G, self.vl)
 
     def path(self):
-        return self.pth
-
-    @staticmethod
-    def pruneSuccesors(sXy, pth):
-        '''
-        Removes any coordinates already visited in path.
-        '''
-        pass
+        return self.G.loc[self.vl, 'x':'y']
 
 
 def parseArgs(args):
