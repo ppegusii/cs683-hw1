@@ -217,12 +217,20 @@
 			\begin{figure}[h]
 				\centering
 				\includegraphics[width=0.8\textwidth]{fig/p5_h_4_max_20_iter_100_seed_0.eps}
-				\caption{Nodes expanded and compute time as a function of solution length during 100 A$^*$ searches of randomly chosen goals in the 25-unit square.}
+				\caption{Nodes expanded and compute time as a function of solution length during 100 A$^*$ searches of randomly chosen goals in the 40-unit square.}
 				\label{fig:p5graph}
 			\end{figure} \\
 	\end{enumerate}
 \end{problem}
 \begin{problem}{6}
+	The Traveling Salesman Problem (TSP) is one of the most intensively studied computational problems.
+	You can read about the history and applications of TSP algorithms at http://www.tsp.gatech.edu/.
+	A TSP can be solved using heuristic search.
+	One possible heuristic is the minimum spanning tree (MST), which can be used to estimate the cost of completing the tour, given that a partial tour has already been constructed.
+	The MST cost of a set of cities is the smallest sum of the link costs of any tree that connects all the cities.
+	\begin{enumerate}
+		\item Formulate the TSP as a search problem and show that the MST heuristic can be derived from a relaxed version of the TSP.
+	\end{enumerate}
 \end{problem}
 
 \end{document}

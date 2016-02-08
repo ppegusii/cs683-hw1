@@ -2,6 +2,7 @@
 from __future__ import print_function
 import argparse
 import datetime as dt
+import gc
 import math
 from matplotlib import pyplot as plt
 import numpy as np
@@ -84,13 +85,15 @@ def main():
                 random.randrange(args.max*-1, args.max+1, 1),
             ]
         )
-        k = KnightNode(np.array([0, 0]), None, goal, H[args.heuristic])
+        k = KnightNode(np.array([0, 0]), None, None, goal, H[args.heuristic])
         print(goal)
         start = dt.datetime.now()
         path, e = astar.search(k)
         compTime[i] = (dt.datetime.now()-start).total_seconds()
         solLength[i] = path.shape[0]
         expanded[i] = e
+        k = None
+        gc.collect()
     print('solLength: {}'.format(solLength))
     print('expanded: {}'.format(expanded))
     print('compTime: {}'.format(compTime))
@@ -172,22 +175,29 @@ class KnightNode(astar.Node):
         ]
     )
 
-    def __init__(self, xy, parent, goal, heuristic):
+    def __init__(self, xy, ppth, pg, goal, heuristic):
         self.xy = xy
         self.goal = goal
-        self.parent = parent
-        self.cost = 0 if parent is None else parent.g()+1
-        self.pth = (np.array([self.xy]) if self.parent is None
+        self.cost = 0 if pg is None else pg+1
+        self.pth = (np.array([self.xy]) if ppth is None
                     else np.concatenate(
-                        (self.parent.path(), np.array([self.xy])),
+                        (ppth, np.array([self.xy])),
                         axis=0)
                     )
         successors = self.xy + KnightNode.moves
         self.sXy = KnightNode.pruneSuccesors(successors, self.pth)
         self.heuristic = heuristic
 
+    def destroy(self):
+        self.xy = None
+        self.goal = None
+        self.cost = None
+        self.pth = None
+        self.sXy = None
+        self.heuristic = None
+
     def successors(self):
-        return [KnightNode(xy, self, self.goal, self.heuristic)
+        return [KnightNode(xy, self.pth, self.cost, self.goal, self.heuristic)
                 for xy in self.sXy]
 
     def isGoal(self):
@@ -206,6 +216,9 @@ class KnightNode(astar.Node):
     def pruneSuccesors(sXy, pth):
         '''
         Removes any coordinates already visited in path.
+
+        TODO: prune paths that do not go in the correct direction or
+        redundantly go in the correct direction when far away from the goal.
         '''
         # Set differnce code found here
         # http://stackoverflow.com/questions/11903083/find-the-set-difference-between-two-large-arrays-matrices-in-python

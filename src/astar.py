@@ -15,6 +15,7 @@ def search(start):
         expanded += 1
         for s in node.successors():
             frontier.push(s, s.f())
+        node.destroy()
 
 
 class PriorityQueue:
@@ -51,4 +52,7 @@ class Node:
         pass
 
     def path(self):
+        pass
+
+    def destroy(self):
         pass
