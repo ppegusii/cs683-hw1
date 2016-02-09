@@ -168,7 +168,23 @@
 
 			\vspace{0.25cm}
 			My heuristic is inconsistent. $h(A) = 4 \nleq cost(A,C) + h(C) = 2$.
-			\textbf{TODO: Answer the rest of this question.}
+			
+			In general it is impossible to create an example with a consistent heuristic.
+			Let $i$, $n$, and $n'$ be nodes.
+			Let $a_1$, $a_2$, $a_3$ be actions.
+			Let $cost(i,a_1,n)+cost(n,a_3,n') < cost(i,a_2,n')$, but $cost(i,a_1,n)+h(n) > cost(i,a_2,n')+h(n')$,
+			which creates the situation described.
+			Since $cost(i,a_1,n)+cost(n,a_3,n') < cost(i,a_2,n')$ and all costs are non-negative,
+			$cost(i,a_1,n) < cost(i,a_2,n')$.
+			Then for $cost(i,a_1,n)+h(n) > cost(i,a_2,n')+h(n')$, $h(n) > h(n')$.
+			This is not possible by the definition of consistency $h(n) \le cost(n,a_3,n')+h(n')$, when costs are non-negative.
+		\item In general, will A$^*$ still find the optimal solution when this happens (i.e., a node is expanded with a g-value greater than the shortest distance from the initial state)?
+			State clearly the assumptions you make about handling duplicate states.
+			
+			\vspace{0.25cm}
+			A$^*$ will still find the optimal solution if no duplicate checking is implemented, or if a node representing
+			a path from the start state $I$ to some other state $S$ with cost $C$ is not placed on the open list only if there
+			exists some other node from $I$ to $S$ with cost $C'\le C$ that was already placed on the open list.
 \end{enumerate}
 \end{problem}
 \begin{problem}{4}
@@ -181,6 +197,14 @@
 	That is, prove that it is always possible that $h_2$ leads to a smaller search space than $h_1$.
 	(Note that the question asks you to find some search ordering such that certain properties hold.
 	Hint: It is not possible, in general, to show that these properties hold for an arbitrary search ordering.)
+
+	\vspace{0.25cm}
+	Let $r(n)$ be the remaining cost from node $n$ to the optimal solution.
+	Let an implementation of A$^*$, $a$, break $f$ ties by imposing a descending ordering of the function $o(n)=r(n)-h(n)$.
+	Therefore, in the event of $f$ ties, $a$ will expand the greatest underestimates of the true remaining cost first.
+	Now consider nodes $n_1,\dots,n_m$ where $f(n_i)=f(n_j)$, $o(n_1) > \dots > o(n_m)$, and $n_m$ is on the solution path.
+	$a$ using $h_1$ must expand $n_1,\dots,n_{m-1}$, but $a$ using $h_2$ may not expand them since $f_{h_1}(n_i) < f_{h_2}(n_i)$---meaning they are no longer tied with the node on the solution path.
+	This is certainly true in the case where $n_m$ is a solution.
 \end{problem}
 \begin{problem}{5}
 	A knight moves on a chessboard two squares up, down, left, or right followed by one square in one of the two directions perpendicular to the first part of the move (i.e., the move is L-shaped).
@@ -213,13 +237,14 @@
 			Create two scatter plots showing (a) the number of nodes expanded as a function of solution length, and (b) computation time as a function of solution length for a set of randomly generated problem instances. 
 
 			\vspace{0.25cm}
-			\textbf{TODO: discussion of figure}
+			Figure~\ref{fig:p5graph} shows both nodes exanded and computation time as a function of solution length.
+			As expected, nodes expanded is highly correlated with computation time.
 			\begin{figure}[h]
 				\centering
 				\includegraphics[width=0.8\textwidth]{fig/p5_h_4_max_20_iter_100_seed_0.eps}
 				\caption{Nodes expanded and compute time as a function of solution length during 100 A$^*$ searches of randomly chosen goals in the 40-unit square.}
 				\label{fig:p5graph}
-			\end{figure} \\
+			\end{figure}
 	\end{enumerate}
 \end{problem}
 \begin{problem}{6}
@@ -230,6 +255,34 @@
 	The MST cost of a set of cities is the smallest sum of the link costs of any tree that connects all the cities.
 	\begin{enumerate}
 		\item Formulate the TSP as a search problem and show that the MST heuristic can be derived from a relaxed version of the TSP.
+			\begin{description}
+				\item[States] Given a particular starting city, a state is any partial or complete tour beginning with that city.
+				\item[Initial state] The salesperson begins the tour in a randomly selected initial city from the set of cities to be visited.
+				\item[Actions] The actions consist of choosing which city to visit next from the set of unvisited cities, if that set's size is greater than two.
+					Otherwise, choose the last unvisited city and complete the tour by continuing to the first visited city.
+				\item[Succesors] The successors of a partial tour are all tours reachable by visiting one more unvisited city.
+				\item[Path] The path is the sequence of visited cities.
+				\item[Step cost] The distance between the last city in parent partial tour and the last city in its successor tour.
+				\item[Path cost] The cost of a path is the sum of all distances between cities on the tour.
+				\item[Goal test] The goal state consists of a path containing all cities with no repeated cities except the first and last city are the same.
+			\end{description}
+		\item Write a problem generator for instances of TSP where cities are represented by random points in the unit square (i.e., each coordinate is between 0 and 1).
+			The number of cities to be generated should be a parameter.
+
+			Please see the generateProblem function in p6.py.
+		\item
+			Find an efficient algorithm in the literature for constructing the MST, and use it with A* search to solve instances of the TSP (The two common algorithms are Prim's algorithm and Kruskal's algorithm); measure and plot the number of nodes expanded and computation time as a fuction of the number of cities for randomly generated problem instances.
+			(Use problem instances that your algorithm can solve in less than a few minutes.)
+
+			The portion of Prim's algorithm necessary to return the weight of the MST is implemented in function primMstWeight in p6.py.
+			Nodes expanded and computation time as a function of the number of cities is given in Figure~\ref{fig:p6graph}.
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.8\textwidth]{fig/p6_h_0_cities_15_rand_True_iter_50_seed_0.eps}
+				\caption{Nodes expanded and compute time as a function of the number of cities to be toured during 50 A$^*$ searches. The number of cities is a uniform random number between 1 and 15.}
+				\label{fig:p6graph}
+			\end{figure}
+		\item[6.] blah
 	\end{enumerate}
 \end{problem}
 
