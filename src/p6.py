@@ -16,7 +16,13 @@ import astar
 
 def main():
     args = parseArgs(sys.argv)
+    if not args.local:
+        part3(args)
+    else:
+        part6(args)
 
+
+def part3(args):
     np.random.seed(args.seed)
     # solLength = np.zeros(args.iter)
     cityCnts = np.zeros(args.iter)
@@ -51,6 +57,44 @@ def main():
     print('compTime: {}'.format(compTime))
     plot(args.heuristic, cityCnts, args.random, expanded, compTime, args.cities,
          args.iter, args.seed, args.dir)
+
+
+def part6(args):
+    np.random.seed(args.seed)
+    cityCnts = np.zeros(args.iter)
+    compTimeA = np.zeros(args.iter)
+    compTimeL = np.zeros(args.iter)
+    tourLengthA = np.zeros(args.iter)
+    tourLengthL = np.zeros(args.iter)
+    cityCnt = args.cities
+    for i in xrange(args.iter):
+        if args.random:
+            cityCnt = np.random.randint(1, high=args.cities+1)
+        print('i: {}'.format(i))
+        print('cityCnt: {}'.format(cityCnt))
+        visitedList = [0]
+        G = generateProblem(cityCnt)
+        d = spd.squareform(spd.pdist(G.values))
+        cost = 0
+        t = TspNode(visitedList, G, cost, H[args.heuristic])
+        start = dt.datetime.now()
+        path, e = astar.search(t)
+        path = path.index
+        compTimeA[i] = (dt.datetime.now()-start).total_seconds()
+        tourLengthA[i] = sum([d[path[i], path[i+1]]
+                              for i in xrange(len(path)-1)])
+        start = dt.datetime.now()
+        path = localSearch(G)
+        compTimeL[i] = (dt.datetime.now()-start).total_seconds()
+        tourLengthL[i] = sum([d[path[i], path[i+1]]
+                              for i in xrange(len(path)-1)])
+        cityCnts[i] = cityCnt
+        G = None
+        t = None
+        gc.collect()
+    plotLocal(args.heuristic, cityCnts, args.random, compTimeA, compTimeL,
+              tourLengthA, tourLengthL, args.cities, args.iter, args.seed,
+              args.dir)
 
 
 def generateProblem(cityCnt):
@@ -92,19 +136,50 @@ def plot(h, cityCnts, rand, expanded, compTime, cities, it, seed, outDir):
     )
 
 
+def plotLocal(h, cityCnts, rand, compTimeA, compTimeL, tourLengthA, tourLengthL,
+              cities, it, seed, outDir):
+    plt.close('all')
+    fig = plt.figure(figsize=(8, 3))
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax1.scatter(cityCnts, tourLengthA/tourLengthL)
+    ax1.set_xlim(xmin=0)
+    ax1.set_xlabel('Number of cities')
+    ax1.set_ylim(ymin=0)
+    ax1.set_ylabel('Local accuracy')
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax2.scatter(cityCnts, compTimeA/compTimeL)
+    ax2.set_xlim(xmin=0)
+    ax2.set_xlabel('Number of cities')
+    ax2.set_yscale('log')
+    ax2.set_ylim(ymin=1)
+    ax2.set_ylabel('Local speedup')
+    plt.grid(False)
+    plt.tight_layout(True)
+    plt.savefig(
+        os.path.join(
+            outDir,
+            'p6_local_h_{}_cities_{}_rand_{}_iter_{}_seed_{}.eps'.format(
+                h,
+                cities,
+                rand,
+                it,
+                seed,
+            )
+        ),
+        dpi=800,
+    )
+
+
 def localSearch(G):
     path = range(G.shape[0])+[0]
     swaps = range(1, G.shape[0])
     swaps = [pair for pair in product(swaps, repeat=2) if pair[0] != pair[1]]
     d = spd.squareform(spd.pdist(G.values))
-    print(swaps)
     tourLength = sum([d[path[i], path[i+1]]
                       for i in xrange(len(path)-1)])
     while True:
         change = False
-        print('while iter')
         for swap in swaps:
-            print('for iter')
             path[swap[0]], path[swap[1]] = path[swap[1]], path[swap[0]]
             newTourLength = sum([d[path[i], path[i+1]]
                                  for i in xrange(len(path)-1)])
@@ -254,6 +329,11 @@ def parseArgs(args):
         '-r', '--random',
         action='store_true',
         help='Randomize number of cities.',
+    )
+    parser.add_argument(
+        '-l', '--local',
+        action='store_true',
+        help='Compare A* to local search.',
     )
     parser.add_argument(
         '-i', '--iter',

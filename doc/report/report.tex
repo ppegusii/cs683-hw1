@@ -282,7 +282,22 @@
 				\caption{Nodes expanded and compute time as a function of the number of cities to be toured during 50 A$^*$ searches. The number of cities is a uniform random number between 1 and 15.}
 				\label{fig:p6graph}
 			\end{figure}
-		\item[6.] blah
+		\item[6.] Implement and test a hill-climbing method to solve TSPs. Compare the results with the optimal solutions obtained using A*.
+			
+			Please see the localSearch function in p6.py.
+			The implementation creates succesors of a complete tour by swapping any pair of cities that do not begin or end the tour.
+			Instead of choosing the best successor of all possible swaps, it chooses the first successor that results in a shorter tour.
+			Figure~\ref{fig:p6local} shows a comparison between A$^*$ and the local search over 50 problems each containing up to 12 cities.
+			Accuracy is calculated as the length of the tour found by A$^*$ divided by the one found by the local search.
+			Speedup is the A$^*$ compute time divided by the local search compute time.
+			The accuracy of the hill-climbing search decreased with problem size, but different methods may mitigate this effect while retaining
+			much of the speedup.
+			\begin{figure}[h]
+				\centering
+				\includegraphics[width=0.8\textwidth]{fig/p6_local_h_0_cities_12_rand_True_iter_50_seed_0.eps}
+				\caption{A comparison of A$^*$ and local search.}
+				\label{fig:p6local}
+			\end{figure}
 	\end{enumerate}
 \end{problem}
 
